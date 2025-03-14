@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>MapValueTracker</AssemblyName>
     <Product>MapValueTracker</Product>
-    <Version>1.0.5</Version>
+    <Version>1.1.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <RestoreAdditionalProjectSources>
@@ -13,6 +13,7 @@
       https://nuget.samboy.dev/v3/index.json
     </RestoreAdditionalProjectSources>
     <RootNamespace>MapValueTracker</RootNamespace>
+    <BaseOutputPath>C:\Users\rtans\source\repos\repo\MapValueTracker\bin</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>

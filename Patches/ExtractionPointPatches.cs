@@ -15,8 +15,8 @@ namespace MapValueTracker.Patches
         [HarmonyPostfix]
         public static void StateSet(ExtractionPoint.State newState)
         {
-            if (newState != ExtractionPoint.State.Complete)
-                return;
+           // if (newState != ExtractionPoint.State.Complete)
+               // return;
 
             /*MapValueTracker.Logger.LogDebug("Extraction Complete!");
 

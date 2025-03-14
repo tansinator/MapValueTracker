@@ -11,21 +11,22 @@ namespace MapValueTracker.Patches
     [HarmonyPatch(typeof(RoundDirector))]
     public static class RoundDirectorPatches
     {
-        [HarmonyPatch("StartRoundLogic")]
-        [HarmonyPostfix]
-        public static void StartRoundLogicPostfix()
-        {
-            //MapValueTracker.ResetValues();
-        }
+    //    [HarmonyPatch("StartRoundLogic")]
+    //    [HarmonyPostfix]
+    //    public static void StartRoundLogicPostfix()
+    //    {
+
+    //    }
 
         [HarmonyPatch(typeof(RoundDirector), "Update")]
         [HarmonyPostfix]
         public static void UpdateUI()
         {
             int? currentGoal = Traverse.Create(RoundDirector.instance).Field("extractionHaulGoal").GetValue<int>();
-            bool extractActive = Traverse.Create(RoundDirector.instance).Field("extractionPointActive").GetValue<bool>();
+            bool extractActive = Traverse.Create(RoundDirector.instance).Field("extractionPointActive").GetValue<bool>(); 
+            bool allExtractionPointsCompleted = Traverse.Create(RoundDirector.instance).Field("allExtractionPointsCompleted").GetValue<bool>();
 
-            if (!SemiFunc.RunIsLevel() || !extractActive)
+            if (!SemiFunc.RunIsLevel())
                 return;
 
             if (MapValueTracker.textInstance == null)
@@ -67,7 +68,7 @@ namespace MapValueTracker.Patches
 
                 return;
             }
-            if (MapValueTracker.valueText != null && currentGoal != null && currentGoal != 0 && (Configuration.AlwaysOn.Value || ((MapValueTracker.totalValue / (float)currentGoal) <= Configuration.ValueRatio.Value)))
+            if (MapValueTracker.valueText != null && ((currentGoal != null && currentGoal != 0) || !allExtractionPointsCompleted) && (Configuration.AlwaysOn.Value || ((MapValueTracker.totalValue / (float)currentGoal) <= Configuration.ValueRatio.Value)))
             {
                 RectTransform component = MapValueTracker.textInstance.GetComponent<RectTransform>();
 

@@ -12,7 +12,7 @@ namespace MapValueTracker
     {
         public const string PLUGIN_GUID = "MapValueTracker";
         public const string PLUGIN_NAME = "MapValueTracker";
-        public const string PLUGIN_VERSION = "1.0.5";
+        public const string PLUGIN_VERSION = "1.1.0";
 
         public static new ManualLogSource Logger;
         private readonly Harmony harmony = new Harmony("Tansinator.REPO.MapValueTracker");
