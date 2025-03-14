@@ -18,8 +18,8 @@ namespace MapValueTracker.Patches
             if (newState != ExtractionPoint.State.Complete)
                 return;
 
-            MapValueTracker.Logger.LogDebug("Extraction Complete!");
-            MapValueTracker.ResetValues();
+            /*MapValueTracker.Logger.LogDebug("Extraction Complete!");
+
             float total = 0;
             List<ValuableObject> valuables = GameObject.FindObjectsOfType<ValuableObject>().ToList();
             foreach (var valuable in valuables)
@@ -28,7 +28,7 @@ namespace MapValueTracker.Patches
                 total += valuable.dollarValueCurrent;
                 MapValueTracker.totalValue += valuable.dollarValueCurrent;
             }
-            MapValueTracker.Logger.LogDebug("Remaining total: " + total);
+            MapValueTracker.Logger.LogDebug("Remaining total: " + total);*/
         }
     }
 }

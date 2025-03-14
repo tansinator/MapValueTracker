@@ -65,4 +65,16 @@ namespace MapValueTracker
             Logger.LogInfo("Total Map Value: " + totalValue);
         }
     }
+
+    public class MyOnDestroy : MonoBehaviour
+    {
+        void OnDestroy()
+        {
+            MapValueTracker.Logger.LogInfo("Destroying!");
+            var vo = GetComponent<ValuableObject>();
+            MapValueTracker.Logger.LogDebug("Destroyed Valuable Object! " + vo.name + " Val: " + vo.dollarValueCurrent);
+            MapValueTracker.totalValue -= vo.dollarValueCurrent;
+            MapValueTracker.Logger.LogDebug("Total Val: " + MapValueTracker.totalValue);
+        }
+    }
 }

@@ -9,11 +9,18 @@ namespace MapValueTracker.Patches
     [HarmonyPatch(typeof(ValuableObject))]
     static class ValuableObjectPatches
     {
+        [HarmonyPatch("Start")]
+        [HarmonyPostfix]
+        static void Start(ValuableObject __instance)
+        {
+            __instance.gameObject.AddComponent<MyOnDestroy>();
+            MapValueTracker.Logger.LogDebug("Added OnDestroy");
+        }
         [HarmonyPatch("DollarValueSetLogic")]
         [HarmonyPostfix]
         static void DollarValueSet(ValuableObject __instance)
         {
-            MapValueTracker.Logger.LogDebug("Started Valuable Object! " + __instance.name + " Val: " + __instance.dollarValueCurrent);
+            MapValueTracker.Logger.LogDebug("Created Valuable Object! " + __instance.name + " Val: " + __instance.dollarValueCurrent);
             MapValueTracker.totalValue += __instance.dollarValueCurrent;
             MapValueTracker.Logger.LogDebug("Total Val: " + MapValueTracker.totalValue);
         }
