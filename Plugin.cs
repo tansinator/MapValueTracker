@@ -4,6 +4,8 @@ using HarmonyLib;
 using TMPro;
 using UnityEngine;
 using MapValueTracker.Config;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MapValueTracker
 {
@@ -12,7 +14,7 @@ namespace MapValueTracker
     {
         public const string PLUGIN_GUID = "MapValueTracker";
         public const string PLUGIN_NAME = "MapValueTracker";
-        public const string PLUGIN_VERSION = "1.1.0";
+        public const string PLUGIN_VERSION = "1.1.1";
 
         public static new ManualLogSource Logger;
         private readonly Harmony harmony = new Harmony("Tansinator.REPO.MapValueTracker");
@@ -41,28 +43,30 @@ namespace MapValueTracker
 
         public static void ResetValues()
         {
-            totalValue = 0;
+            if (!SemiFunc.RunIsLevel())
+                totalValue = 0;
 
             Logger.LogDebug("In ResetValues()");
 
-            /*if (!SemiFunc.RunIsLevel())
-                return;
-
-            ValuableDirector vd = ValuableDirector.instance;
-
-            if (vd == null || vd.valuableList == null)
-            {
-                return;
-            }
-
-            int valuables = vd.valuableList.Count;
-
-            for (int i = 0; i < valuables; i++)
-            {
-                totalValue += (int)vd.valuableList[i].dollarValueCurrent;
-            }*/
-
             Logger.LogInfo("Total Map Value: " + totalValue);
+        }
+
+        public static void CheckForItems(ValuableObject ignoreThis = null)
+        {
+            if (!Traverse.Create(RoundDirector.instance).Field("allExtractionPointsCompleted").GetValue<bool>())
+            {
+                totalValue = 0f;
+                List<ValuableObject> valuebleObjects = Object.FindObjectsOfType<ValuableObject>().ToList();
+
+                if (ignoreThis != null)
+                {
+                    valuebleObjects.Remove(ignoreThis);
+                }
+                for (int i = 0; i < valuebleObjects.Count; i++)
+                {
+                    totalValue += valuebleObjects[i].dollarValueCurrent;
+                }
+            }
         }
     }
 
@@ -77,4 +81,6 @@ namespace MapValueTracker
             MapValueTracker.Logger.LogDebug("Total Val: " + MapValueTracker.totalValue);
         }
     }
+
+
 }

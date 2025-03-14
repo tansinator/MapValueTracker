@@ -16,5 +16,14 @@ namespace MapValueTracker.Patches
             MapValueTracker.ResetValues();
             MapValueTracker.Logger.LogDebug("Reset. Now val is " + MapValueTracker.totalValue);
         }
+
+        [HarmonyPatch("GenerateDone")]
+        [HarmonyPrefix]
+        public static void GenerateDonePostfix()
+        {
+            MapValueTracker.Logger.LogDebug("Generating Started. Resetting to zero.");
+            MapValueTracker.CheckForItems();
+            MapValueTracker.Logger.LogDebug("Reset. Now val is " + MapValueTracker.totalValue);
+        }
     }
 }

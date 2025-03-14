@@ -13,15 +13,16 @@ namespace MapValueTracker.Patches
         [HarmonyPostfix]
         static void Start(ValuableObject __instance)
         {
-            __instance.gameObject.AddComponent<MyOnDestroy>();
-            MapValueTracker.Logger.LogDebug("Added OnDestroy");
+            //__instance.gameObject.AddComponent<MyOnDestroy>();
+            //MapValueTracker.Logger.LogDebug("Added OnDestroy");
         }
         [HarmonyPatch("DollarValueSetLogic")]
         [HarmonyPostfix]
         static void DollarValueSet(ValuableObject __instance)
         {
             MapValueTracker.Logger.LogDebug("Created Valuable Object! " + __instance.name + " Val: " + __instance.dollarValueCurrent);
-            MapValueTracker.totalValue += __instance.dollarValueCurrent;
+            //MapValueTracker.totalValue += __instance.dollarValueCurrent;
+            MapValueTracker.CheckForItems();
             MapValueTracker.Logger.LogDebug("Total Val: " + MapValueTracker.totalValue);
         }
     }

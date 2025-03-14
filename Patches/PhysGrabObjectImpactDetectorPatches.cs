@@ -24,5 +24,15 @@ namespace MapValueTracker.Patches
 
             MapValueTracker.Logger.LogDebug("BreakRPC - After Break Value: " + MapValueTracker.totalValue);
         }
+
+        [HarmonyPatch(typeof(PhysGrabObject), "DestroyPhysGrabObject")]
+        [HarmonyPostfix]
+        public static void DestroyPhysGrabObjectPostfix(PhysGrabObject __instance)
+        {
+            if (SemiFunc.RunIsLevel())
+            {
+                MapValueTracker.CheckForItems(__instance.GetComponent<ValuableObject>());
+            }
+        }
     }
 }
