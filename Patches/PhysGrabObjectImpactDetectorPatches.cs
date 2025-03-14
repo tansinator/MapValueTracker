@@ -25,13 +25,17 @@ namespace MapValueTracker.Patches
             MapValueTracker.Logger.LogDebug("BreakRPC - After Break Value: " + MapValueTracker.totalValue);
         }
 
-        [HarmonyPatch(typeof(PhysGrabObject), "DestroyPhysGrabObject")]
+        [HarmonyPatch(typeof(PhysGrabObject), "DestroyPhysGrabObjectRPC")]
         [HarmonyPostfix]
         public static void DestroyPhysGrabObjectPostfix(PhysGrabObject __instance)
         {
             if (SemiFunc.RunIsLevel())
             {
-                MapValueTracker.CheckForItems(__instance.GetComponent<ValuableObject>());
+                var vo = __instance.GetComponent<ValuableObject>();
+                MapValueTracker.Logger.LogInfo("Destroying (DPGO)!");
+                MapValueTracker.Logger.LogDebug("Destroyed Valuable Object! " + vo.name + " Val: " + vo.dollarValueCurrent);
+                MapValueTracker.totalValue -= vo.dollarValueCurrent;
+                MapValueTracker.Logger.LogDebug("Map Remaining Val: " + MapValueTracker.totalValue);
             }
         }
     }
