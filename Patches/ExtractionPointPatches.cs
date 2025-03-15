@@ -11,14 +11,18 @@ namespace MapValueTracker.Patches
 
     static class ExtractionPointPatches
     {
-        [HarmonyPatch(typeof(ExtractionPoint), "HaulGoalSetRPC")]
+        [HarmonyPatch("StateComplete")]
         [HarmonyPostfix]
-        public static void HaulGoalSetRPC(ExtractionPoint __instance)
+        public static void StateComplete()
         {
-            if (SemiFunc.RunIsLevel())
-            {
-                MapValueTracker.CheckForItems();
-            }
+           if (SemiFunc.RunIsLevel())
+               return;
+
+            MapValueTracker.Logger.LogDebug("Extraction Complete!");
+
+            MapValueTracker.CheckForItems();
+
+            MapValueTracker.Logger.LogDebug("Checked after Extraction. Val is " + MapValueTracker.totalValue);
         }
     }
 }

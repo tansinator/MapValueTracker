@@ -23,7 +23,7 @@ namespace MapValueTracker.Patches
             MapValueTracker.Logger.LogDebug("Created Valuable Object! " + __instance.name + " Val: " + __instance.dollarValueCurrent);
             //MapValueTracker.totalValue += __instance.dollarValueCurrent;
             MapValueTracker.CheckForItems();
-            MapValueTracker.Logger.LogDebug("Total Val: " + MapValueTracker.totalValue);
+            MapValueTracker.Logger.LogDebug("After dollar value set Total Val: " + MapValueTracker.totalValue);
         }
     }
 }

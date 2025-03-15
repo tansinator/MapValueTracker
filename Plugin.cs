@@ -14,7 +14,7 @@ namespace MapValueTracker
     {
         public const string PLUGIN_GUID = "MapValueTracker";
         public const string PLUGIN_NAME = "MapValueTracker";
-        public const string PLUGIN_VERSION = "1.1.2";
+        public const string PLUGIN_VERSION = "1.1.5";
 
         public static new ManualLogSource Logger;
         private readonly Harmony harmony = new Harmony("Tansinator.REPO.MapValueTracker");
@@ -66,6 +66,7 @@ namespace MapValueTracker
                 {
                     totalValue += valuebleObjects[i].dollarValueCurrent;
                 }
+                MapValueTracker.Logger.LogDebug("After CheckForItems Total Val: " + MapValueTracker.totalValue);
             }
         }
     }

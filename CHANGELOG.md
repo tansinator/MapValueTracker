@@ -1,1 +1,1 @@
-Last update kinda borked stuff. This seems to fix things up nicely. Unsure about multiplayer though.
+Clients should see map value from the start. Spawned items still won't replicate for now other than host (tax returns, enemy orbs).
