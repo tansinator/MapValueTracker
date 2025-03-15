@@ -11,24 +11,18 @@ namespace MapValueTracker.Patches
 
     static class ExtractionPointPatches
     {
-        [HarmonyPatch("StateSet")]
+        [HarmonyPatch("StateComplete")]
         [HarmonyPostfix]
-        public static void StateSet(ExtractionPoint.State newState)
+        public static void StateComplete()
         {
-           // if (newState != ExtractionPoint.State.Complete)
-               // return;
+           if (SemiFunc.RunIsLevel())
+               return;
 
-            /*MapValueTracker.Logger.LogDebug("Extraction Complete!");
+            MapValueTracker.Logger.LogDebug("Extraction Complete!");
 
-            float total = 0;
-            List<ValuableObject> valuables = GameObject.FindObjectsOfType<ValuableObject>().ToList();
-            foreach (var valuable in valuables)
-            {
-                MapValueTracker.Logger.LogDebug("Remaining item: " + valuable.dollarValueCurrent);
-                total += valuable.dollarValueCurrent;
-                MapValueTracker.totalValue += valuable.dollarValueCurrent;
-            }
-            MapValueTracker.Logger.LogDebug("Remaining total: " + total);*/
+            MapValueTracker.CheckForItems();
+
+            MapValueTracker.Logger.LogDebug("Checked after Extraction. Val is " + MapValueTracker.totalValue);
         }
     }
 }
