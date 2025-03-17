@@ -2,6 +2,7 @@
 using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine.Scripting;
 
 namespace MapValueTracker.Config
 {
@@ -9,6 +10,7 @@ namespace MapValueTracker.Config
 	internal class Configuration
     {
         public static ConfigEntry<bool> AlwaysOn;
+        public static ConfigEntry<bool> UseValueRatio;
         public static ConfigEntry<float> ValueRatio;
 
         public static void Init(ConfigFile config)
@@ -19,14 +21,20 @@ namespace MapValueTracker.Config
                 "Default",
                 "AlwaysOn",
                 true,
-                "Toggle to always display map value when an extraction goal is active."
+                "Toggle to always display map value when an extraction goal is active. If false, use the menu key to pull up the tracker (Tab by default)."
             );
 
+            UseValueRatio = config.Bind(
+                "Default",
+                "UseValueRatio",
+                false,
+                "Toggle to use value ratio to display Map Valuables. AlwaysOn must be false and this must be true to take effect."
+            );
             ValueRatio = config.Bind(
                 "Default",
                 "ValueRatio",
                 2.0f,
-                "Ratio of Map Value to Extraction Goal. Ex: 20k map value to 10k goal is 2.0"
+                "Ratio of Map Value to Extraction Goal. UseValueRatio must be true to take effect. Ex: 20k map value to 10k goal is 2.0 "
             );
 
             ClearOrphanedEntries(config);

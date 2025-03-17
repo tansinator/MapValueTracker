@@ -11,12 +11,19 @@ namespace MapValueTracker.Patches
     [HarmonyPatch(typeof(RoundDirector))]
     public static class RoundDirectorPatches
     {
-    //    [HarmonyPatch("StartRoundLogic")]
-    //    [HarmonyPostfix]
-    //    public static void StartRoundLogicPostfix()
-    //    {
+        [HarmonyPatch("ExtractionCompleted")]
+        [HarmonyPostfix]
+        public static void ExtractionComplete()
+        {
+            if (!SemiFunc.RunIsLevel())
+                return;
 
-    //    }
+            MapValueTracker.Logger.LogDebug("Extraction Completed!");
+
+            MapValueTracker.CheckForItems();
+
+            MapValueTracker.Logger.LogDebug("Checked after Extraction. Val is " + MapValueTracker.totalValue);
+        }
 
         [HarmonyPatch(typeof(RoundDirector), "Update")]
         [HarmonyPostfix]
@@ -68,8 +75,10 @@ namespace MapValueTracker.Patches
 
                 return;
             }
-            if (MapValueTracker.valueText != null && ((currentGoal != null && currentGoal != 0) || !allExtractionPointsCompleted) && (Configuration.AlwaysOn.Value || ((MapValueTracker.totalValue / (float)currentGoal) <= Configuration.ValueRatio.Value)))
+            if (MapValueTracker.valueText != null && ((currentGoal != null && currentGoal != 0) || !allExtractionPointsCompleted))
             {
+                bool mapToggled = Traverse.Create(MapToolController.instance).Field("mapToggled").GetValue<bool>();
+
                 RectTransform component = MapValueTracker.textInstance.GetComponent<RectTransform>();
 
                 component.pivot = new Vector2(1f, 1f);
@@ -80,9 +89,27 @@ namespace MapValueTracker.Patches
                 component.offsetMax = new Vector2(0, 225f);
                 component.offsetMin = new Vector2(0f, 225f);
 
-                MapValueTracker.textInstance.SetActive(true);
-
                 MapValueTracker.valueText.SetText("Map: $" + MapValueTracker.totalValue.ToString("N0"));
+                if (Configuration.AlwaysOn.Value)
+                {
+                    MapValueTracker.textInstance.SetActive(true);
+                }
+                else if (Configuration.UseValueRatio.Value)
+                {
+                    if ((MapValueTracker.totalValue / (float)currentGoal) <= Configuration.ValueRatio.Value)
+                        MapValueTracker.textInstance.SetActive(true);
+                    else
+                        MapValueTracker.textInstance.SetActive(false);
+                    return;
+                }
+                else if (SemiFunc.InputHold(InputKey.Map) || mapToggled)
+                {
+                    MapValueTracker.textInstance.SetActive(true);
+                }
+                else
+                {
+                    MapValueTracker.textInstance.SetActive(false);
+                }
             }
             else
                 MapValueTracker.textInstance.SetActive(false);
