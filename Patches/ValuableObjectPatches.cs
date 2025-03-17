@@ -16,14 +16,26 @@ namespace MapValueTracker.Patches
             //__instance.gameObject.AddComponent<MyOnDestroy>();
             //MapValueTracker.Logger.LogDebug("Added OnDestroy");
         }
+        [HarmonyPatch("DollarValueSetRPC")]
+        [HarmonyPostfix]
+        static void DollarValueSet(ValuableObject __instance, float value)
+        {
+            MapValueTracker.Logger.LogDebug("Created Valuable Object! " + __instance.name + " Val: " + value);
+            MapValueTracker.totalValue += value;
+            //MapValueTracker.CheckForItems();
+            MapValueTracker.Logger.LogDebug("After dollar value set Total Val: " + MapValueTracker.totalValue);
+        }
         [HarmonyPatch("DollarValueSetLogic")]
         [HarmonyPostfix]
-        static void DollarValueSet(ValuableObject __instance)
+        static void DollarValueSetLogic(ValuableObject __instance)
         {
-            MapValueTracker.Logger.LogDebug("Created Valuable Object! " + __instance.name + " Val: " + __instance.dollarValueCurrent);
-            //MapValueTracker.totalValue += __instance.dollarValueCurrent;
-            MapValueTracker.CheckForItems();
-            MapValueTracker.Logger.LogDebug("After dollar value set Total Val: " + MapValueTracker.totalValue);
+            if (SemiFunc.IsMasterClient())
+            {
+                MapValueTracker.Logger.LogDebug("Created Valuable Object! " + __instance.name + " Val: " + __instance.dollarValueCurrent);
+                MapValueTracker.totalValue += __instance.dollarValueCurrent;
+                //MapValueTracker.CheckForItems();
+                MapValueTracker.Logger.LogDebug("After dollar value set Total Val: " + MapValueTracker.totalValue);
+            }
         }
     }
 }

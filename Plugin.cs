@@ -14,7 +14,7 @@ namespace MapValueTracker
     {
         public const string PLUGIN_GUID = "MapValueTracker";
         public const string PLUGIN_NAME = "MapValueTracker";
-        public const string PLUGIN_VERSION = "1.1.5";
+        public const string PLUGIN_VERSION = "1.2.0";
 
         public static new ManualLogSource Logger;
         private readonly Harmony harmony = new Harmony("Tansinator.REPO.MapValueTracker");
@@ -48,7 +48,7 @@ namespace MapValueTracker
 
             Logger.LogDebug("In ResetValues()");
 
-            Logger.LogInfo("Total Map Value: " + totalValue);
+            Logger.LogDebug("Total Map Value: " + totalValue);
         }
 
         public static void CheckForItems(ValuableObject ignoreThis = null)
@@ -75,7 +75,7 @@ namespace MapValueTracker
     {
         void OnDestroy()
         {
-            MapValueTracker.Logger.LogInfo("Destroying!");
+            MapValueTracker.Logger.LogDebug("Destroying!");
             var vo = GetComponent<ValuableObject>();
             MapValueTracker.Logger.LogDebug("Destroyed Valuable Object! " + vo.name + " Val: " + vo.dollarValueCurrent);
             MapValueTracker.totalValue -= vo.dollarValueCurrent;

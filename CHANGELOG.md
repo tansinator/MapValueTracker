@@ -1,1 +1,1 @@
-Clients should see map value from the start. Spawned items still won't replicate for now other than host (tax returns, enemy orbs).
+Fixed incorrect logic check / state check on extraction that was killing performance outside of runs (in shop) by constantly checking for val objects.
