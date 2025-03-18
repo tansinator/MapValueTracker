@@ -1,1 +1,1 @@
-Fixed incorrect logic check / state check on extraction that was killing performance outside of runs (in shop) by constantly checking for val objects.
+Fixed networking so all clients should see tax return/enemy orbs. Fixed incorrect deduction from iframe hits. Updated readme to mention Map/Tab functionality.
