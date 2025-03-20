@@ -29,7 +29,7 @@ namespace MapValueTracker.Patches
         [HarmonyPostfix]
         static void DollarValueSetLogic(ValuableObject __instance)
         {
-            if (SemiFunc.IsMasterClient())
+            if (SemiFunc.IsMasterClientOrSingleplayer())
             {
                 MapValueTracker.Logger.LogDebug("Created Valuable Object! " + __instance.name + " Val: " + __instance.dollarValueCurrent);
                 MapValueTracker.totalValue += __instance.dollarValueCurrent;

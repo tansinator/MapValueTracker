@@ -1,1 +1,1 @@
-Fixed networking so all clients should see tax return/enemy orbs. Fixed incorrect deduction from iframe hits. Updated readme to mention Map/Tab functionality.
+(1.2.1: Fixed singleplayer not accounting for spawned item values.) (1.2.0: Added Map/TAB functionality to view Map value if you disable AlwaysOn and disable UseValueRatio)
