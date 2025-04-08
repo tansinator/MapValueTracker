@@ -10,6 +10,7 @@ namespace MapValueTracker.Config
 	internal class Configuration
     {
         public static ConfigEntry<bool> AlwaysOn;
+        public static ConfigEntry<bool> StartingValueOnly;
         public static ConfigEntry<bool> UseValueRatio;
         public static ConfigEntry<float> ValueRatio;
 
@@ -23,7 +24,12 @@ namespace MapValueTracker.Config
                 true,
                 "Toggle to always display map value when an extraction goal is active. If false, use the menu key to pull up the tracker (Tab by default)."
             );
-
+            StartingValueOnly = config.Bind(
+                "Default",
+                "StartingValueOnly",
+                false,
+                "Toggle to keep the Map Value fixed to the level's initially generated value. Will not update value in real time from breaking items, killing enemies, or extracting loot. Should not be used with UseValueRatio set to true."
+            );
             UseValueRatio = config.Bind(
                 "Default",
                 "UseValueRatio",

@@ -23,7 +23,8 @@ namespace MapValueTracker.Patches
         {
             MapValueTracker.Logger.LogDebug("Generating Started. Resetting to zero.");
             MapValueTracker.CheckForItems();
-            MapValueTracker.Logger.LogDebug("Generation done. Now val is " + MapValueTracker.totalValue);
+            MapValueTracker.totalValueInit = MapValueTracker.totalValue;
+            MapValueTracker.Logger.LogDebug("Generation done. Now val is " + MapValueTracker.totalValue + ". Init Value: " + MapValueTracker.totalValueInit);
         }
     }
 }
