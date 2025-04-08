@@ -1,1 +1,1 @@
-(1.2.1: Fixed singleplayer not accounting for spawned item values.) (1.2.0: Added Map/TAB functionality to view Map value if you disable AlwaysOn and disable UseValueRatio)
+1.2.2 added Config variable 'StartingValueOnly' to not update value tracker in real time and only display the initial map value based on a community request.

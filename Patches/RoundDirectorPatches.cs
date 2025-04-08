@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Text;
 using HarmonyLib;
 using MapValueTracker.Config;
@@ -89,7 +90,11 @@ namespace MapValueTracker.Patches
                 component.offsetMax = new Vector2(0, 225f);
                 component.offsetMin = new Vector2(0f, 225f);
 
-                MapValueTracker.valueText.SetText("Map: $" + MapValueTracker.totalValue.ToString("N0"));
+                if (Configuration.StartingValueOnly.Value)
+                    MapValueTracker.valueText.SetText("Map: $" + MapValueTracker.totalValueInit.ToString("N0"));
+                else
+                    MapValueTracker.valueText.SetText("Map: $" + MapValueTracker.totalValue.ToString("N0"));
+                
                 if (Configuration.AlwaysOn.Value)
                 {
                     MapValueTracker.textInstance.SetActive(true);

@@ -14,7 +14,7 @@ namespace MapValueTracker
     {
         public const string PLUGIN_GUID = "MapValueTracker";
         public const string PLUGIN_NAME = "MapValueTracker";
-        public const string PLUGIN_VERSION = "1.2.1";
+        public const string PLUGIN_VERSION = "1.2.2";
 
         public static new ManualLogSource Logger;
         private readonly Harmony harmony = new Harmony("Tansinator.REPO.MapValueTracker");
@@ -24,6 +24,7 @@ namespace MapValueTracker
         public static TextMeshProUGUI valueText;
 
         public static float totalValue = 0f;
+        public static float totalValueInit = 0f;
 
         public void Awake()
         {
