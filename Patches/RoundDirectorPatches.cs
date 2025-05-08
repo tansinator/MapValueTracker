@@ -12,6 +12,58 @@ namespace MapValueTracker.Patches
     [HarmonyPatch(typeof(RoundDirector))]
     public static class RoundDirectorPatches
     {
+        private static void SetCoordinates(RectTransform component)
+        {
+            switch (Configuration.UIPosition.Value) 
+            {
+                case Positions.Default:
+                    component.pivot = new Vector2(1f, 1f);
+                    component.anchoredPosition = new Vector2(1f, -1f);
+                    component.anchorMin = new Vector2(0f, 0f);
+                    component.anchorMax = new Vector2(1f, 0f);
+                    component.sizeDelta = new Vector2(0f, 0f);
+                    component.offsetMax = new Vector2(0f, 225f);
+                    component.offsetMin = new Vector2(0f, 225f);
+                    break;
+                case Positions.LowerRight:
+                    component.pivot = new Vector2(1f, 1f);
+                    component.anchoredPosition = new Vector2(1f, -1f);
+                    component.anchorMin = new Vector2(0f, 0f);
+                    component.anchorMax = new Vector2(1f, 0f);
+                    component.sizeDelta = new Vector2(0f, 0f);
+                    component.offsetMax = new Vector2(0f, 125f);
+                    component.offsetMin = new Vector2(0f, 125f);
+                    break;
+                case Positions.BottomRight:
+                    component.pivot = new Vector2(1f, 1f);
+                    component.anchoredPosition = new Vector2(1f, -1f);
+                    component.anchorMin = new Vector2(0f, 0f);
+                    component.anchorMax = new Vector2(1f, 0f);
+                    component.sizeDelta = new Vector2(0f, 0f);
+                    component.offsetMax = new Vector2(0f, 0f);
+                    component.offsetMin = new Vector2(0f, 0f);
+                    break;
+                case Positions.Custom:
+                    component.pivot = new Vector2(1f, 1f);
+                    component.anchoredPosition = new Vector2(1f, -1f);
+                    component.anchorMin = new Vector2(0f, 0f);
+                    component.anchorMax = new Vector2(1f, 0f);
+                    component.sizeDelta = new Vector2(0f, 0f);
+                    component.offsetMax = Configuration.CustomPositionCoords.Value;
+                    component.offsetMin = Configuration.CustomPositionCoords.Value;
+                    break;
+                default:
+                    component.pivot = new Vector2(1f, 1f);
+                    component.anchoredPosition = new Vector2(1f, -1f);
+                    component.anchorMin = new Vector2(0f, 0f);
+                    component.anchorMax = new Vector2(1f, 0f);
+                    component.sizeDelta = new Vector2(0f, 0f);
+                    component.offsetMax = new Vector2(0, 225f);
+                    component.offsetMin = new Vector2(0f, 225f);
+                    break;
+            }
+        }
+
         [HarmonyPatch("ExtractionCompleted")]
         [HarmonyPostfix]
         public static void ExtractionComplete()
@@ -66,13 +118,7 @@ namespace MapValueTracker.Patches
 
                 RectTransform component = MapValueTracker.textInstance.GetComponent<RectTransform>();
 
-                component.pivot = new Vector2(1f, 1f);
-                component.anchoredPosition = new Vector2(1f, -1f);
-                component.anchorMin = new Vector2(0f, 0f);
-                component.anchorMax = new Vector2(1f, 0f);
-                component.sizeDelta = new Vector2(0f, 0f);
-                component.offsetMax = new Vector2(0, 225f);
-                component.offsetMin = new Vector2(0f, 225f);
+                SetCoordinates(component);
 
                 return;
             }
@@ -82,13 +128,8 @@ namespace MapValueTracker.Patches
 
                 RectTransform component = MapValueTracker.textInstance.GetComponent<RectTransform>();
 
-                component.pivot = new Vector2(1f, 1f);
-                component.anchoredPosition = new Vector2(1f, -1f);
-                component.anchorMin = new Vector2(0f, 0f);
-                component.anchorMax = new Vector2(1f, 0f);
-                component.sizeDelta = new Vector2(0f, 0f);
-                component.offsetMax = new Vector2(0, 225f);
-                component.offsetMin = new Vector2(0f, 225f);
+                SetCoordinates(component);
+
 
                 if (Configuration.StartingValueOnly.Value)
                     MapValueTracker.valueText.SetText("Map: $" + MapValueTracker.totalValueInit.ToString("N0"));

@@ -2,10 +2,18 @@
 using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine;
 using UnityEngine.Scripting;
 
 namespace MapValueTracker.Config
 {
+    public enum Positions
+    {
+        Default,
+        LowerRight,
+        BottomRight,
+        Custom
+    }
 
 	internal class Configuration
     {
@@ -13,6 +21,8 @@ namespace MapValueTracker.Config
         public static ConfigEntry<bool> StartingValueOnly;
         public static ConfigEntry<bool> UseValueRatio;
         public static ConfigEntry<float> ValueRatio;
+        public static ConfigEntry<Positions> UIPosition;
+        public static ConfigEntry<Vector2> CustomPositionCoords;
 
         public static void Init(ConfigFile config)
         {
@@ -41,6 +51,18 @@ namespace MapValueTracker.Config
                 "ValueRatio",
                 2.0f,
                 "Ratio of Map Value to Extraction Goal. UseValueRatio must be true to take effect. Ex: 20k map value to 10k goal is 2.0 "
+            );
+            UIPosition = config.Bind(
+                "UIPosition",
+                "UIPosition",
+                Positions.Default,
+                "Preset Position of the Value Tracker UI element. Default is on the right side, below the extraction targets."
+            );
+            CustomPositionCoords = config.Bind(
+                "UIPosition",
+                "CustomPositionCoords",
+                new Vector2(0, 0),
+                "Custom X,Y coordates of the Value Tracker UI element. Bottom Right corner is 0,0. Default position is 0,225."
             );
 
             ClearOrphanedEntries(config);
