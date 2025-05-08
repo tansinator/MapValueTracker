@@ -1,1 +1,1 @@
-1.2.2 added Config variable 'StartingValueOnly' to not update value tracker in real time and only display the initial map value based on a community request.
+1.3.0 Added config options to change the UI Position of the value tracker. Default, Lower Right, Bottom Right, and Custom Coordinates.
