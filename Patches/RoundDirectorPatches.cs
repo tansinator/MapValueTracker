@@ -110,6 +110,12 @@ namespace MapValueTracker.Patches
                 return;
             }
 
+            if (!Upgrades.MapValueTrackerUpgradeManager.IsTrackerUnlocked())
+            {
+                MapValueTracker.textInstance.SetActive(false);
+                return;
+            }
+
             if (MapValueTracker.valueText != null && (currentGoal > 0 || !allExtractionPointsCompleted))
             {
                 float valueToDisplay = Configuration.StartingValueOnly.Value ? MapValueTracker.totalValueInit : MapValueTracker.totalValue;

@@ -15,3 +15,7 @@ Configuration variables:
 - `StartingValueOnly`: Set to true to keep the Map Value fixed to the level's initially generated value. Will not update value in real time from breaking items, killing enemies, or extracting loot.
 - `UIPosition`: Dropdown of UI Position presets along the right side of the screen (`Default`, `LowerRight`, `BottomRight`, `Custom`).
 - `CustomPositionCoords`: The X and Y coordinates of the UI element when `UIPosition` is set to `Custom`. (0, 0) is bottom right corner. Default is (0, 225).
+
+Shop Progression (Optional):
+- `RequireShopUpgrade`: Set to `true` to require purchasing the "Map Value Tracker" upgrade pedestal from the Shop ($4,000 - $7,000) before the value tracker appears on your HUD. Default is `false` (always available).
+- `TeamWideUnlock`: Set to `true` so that when any player buys the upgrade in co-op, it unlocks the tracker for the whole squad. Default is `true`.

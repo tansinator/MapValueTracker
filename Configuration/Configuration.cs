@@ -30,11 +30,28 @@ namespace MapValueTracker.Config
         public static ConfigEntry<Positions> UIPosition;
         public static ConfigEntry<Vector2> CustomPositionCoords;
 
+        public static ConfigEntry<bool> RequireShopUpgrade;
+        public static ConfigEntry<bool> TeamWideUnlock;
+
         public static event Action OnUIPositionChanged;
 
         public static void Init(ConfigFile config)
         {
             config.SaveOnConfigSet = false;
+
+            RequireShopUpgrade = config.Bind(
+                "Shop Progression",
+                "RequireShopUpgrade",
+                false,
+                "If true, the Map Value Tracker will only be visible after purchasing the Map Value Tracker upgrade from the Shop ($4,000 - $7,000). Default is false."
+            );
+
+            TeamWideUnlock = config.Bind(
+                "Shop Progression",
+                "TeamWideUnlock",
+                true,
+                "If true and RequireShopUpgrade is enabled, purchasing the upgrade unlocks the tracker for all players on the team. Default is true."
+            );
 
             DisplayMode = config.Bind(
                 "Display",

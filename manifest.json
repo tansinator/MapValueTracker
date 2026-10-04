@@ -4,6 +4,7 @@
 	"website_url": "https://github.com/tansinator/MapValueTracker",
 	"description": "Tracks all valuable items on the map. Updates in real-time.",
 	"dependencies": [
-		"BepInEx-BepInExPack-5.4.2100"
+		"BepInEx-BepInExPack-5.4.2100",
+		"Zehs-REPOLib-4.2.0"
 	]
 }

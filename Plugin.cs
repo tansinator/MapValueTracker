@@ -9,6 +9,7 @@ using System.Collections.Generic;
 namespace MapValueTracker
 {
     [BepInPlugin(PLUGIN_GUID, PLUGIN_NAME, PLUGIN_VERSION)]
+    [BepInDependency("Zehs.REPOLib", BepInDependency.DependencyFlags.SoftDependency)]
     public class MapValueTracker : BaseUnityPlugin
     {
         public const string PLUGIN_GUID = "MapValueTracker";
@@ -44,7 +45,22 @@ namespace MapValueTracker
 
             Configuration.Init(Config);
 
+            if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("Zehs.REPOLib"))
+            {
+                InitShopUpgrade();
+            }
+            else
+            {
+                Logger.LogInfo("[MapValueTracker] REPOLib not detected. Shop upgrade registration skipped.");
+            }
+
             harmony.PatchAll();
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        private void InitShopUpgrade()
+        {
+            Upgrades.MapValueTrackerUpgradeManager.Initialize();
         }
 
         public static void ResetValues()
