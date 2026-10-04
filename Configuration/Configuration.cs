@@ -1,9 +1,9 @@
-﻿using BepInEx.Configuration;
-using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
+using BepInEx.Configuration;
+using HarmonyLib;
 using UnityEngine;
-using UnityEngine.Scripting;
 
 namespace MapValueTracker.Config
 {
@@ -15,7 +15,7 @@ namespace MapValueTracker.Config
         Custom
     }
 
-	internal class Configuration
+    internal class Configuration
     {
         public static ConfigEntry<bool> AlwaysOn;
         public static ConfigEntry<bool> StartingValueOnly;
@@ -23,6 +23,8 @@ namespace MapValueTracker.Config
         public static ConfigEntry<float> ValueRatio;
         public static ConfigEntry<Positions> UIPosition;
         public static ConfigEntry<Vector2> CustomPositionCoords;
+
+        public static event Action OnUIPositionChanged;
 
         public static void Init(ConfigFile config)
         {
@@ -62,8 +64,11 @@ namespace MapValueTracker.Config
                 "UIPosition",
                 "CustomPositionCoords",
                 new Vector2(0, 0),
-                "Custom X,Y coordates of the Value Tracker UI element. Bottom Right corner is 0,0. Default position is 0,225."
+                "Custom X,Y coordinates of the Value Tracker UI element. Bottom Right corner is 0,0. Default position is 0,225."
             );
+
+            UIPosition.SettingChanged += (_, _) => OnUIPositionChanged?.Invoke();
+            CustomPositionCoords.SettingChanged += (_, _) => OnUIPositionChanged?.Invoke();
 
             ClearOrphanedEntries(config);
             config.Save();
@@ -74,11 +79,11 @@ namespace MapValueTracker.Config
         {
             // Find the private property `OrphanedEntries` from the type `ConfigFile` //
             PropertyInfo orphanedEntriesProp = AccessTools.Property(typeof(ConfigFile), "OrphanedEntries");
-            // And get the value of that property from our ConfigFile instance //
-            var orphanedEntries = (Dictionary<ConfigDefinition, string>)orphanedEntriesProp.GetValue(cfg);
-            // And finally, clear the `OrphanedEntries` dictionary //
-            orphanedEntries.Clear();
+            if (orphanedEntriesProp != null)
+            {
+                var orphanedEntries = orphanedEntriesProp.GetValue(cfg) as Dictionary<ConfigDefinition, string>;
+                orphanedEntries?.Clear();
+            }
         }
     }
-
 }

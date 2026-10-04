@@ -1,11 +1,10 @@
-﻿using BepInEx;
+using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using TMPro;
 using UnityEngine;
 using MapValueTracker.Config;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace MapValueTracker
 {
@@ -14,7 +13,7 @@ namespace MapValueTracker
     {
         public const string PLUGIN_GUID = "MapValueTracker";
         public const string PLUGIN_NAME = "MapValueTracker";
-        public const string PLUGIN_VERSION = "1.3.0";
+        public const string PLUGIN_VERSION = "1.3.1";
 
         public static new ManualLogSource Logger;
         private readonly Harmony harmony = new Harmony("Tansinator.REPO.MapValueTracker");
@@ -25,6 +24,12 @@ namespace MapValueTracker
 
         public static float totalValue = 0f;
         public static float totalValueInit = 0f;
+
+        // PhysGrabObject instance IDs whose value has already been deducted on destroy.
+        // Also used by CheckForItems to skip objects whose Object.Destroy is still pending this frame.
+        public static readonly HashSet<int> destroyedIds = new HashSet<int>();
+        // PhysGrabObject instance IDs absorbed into an ItemValuableBox (value moves to the box, not lost).
+        public static readonly HashSet<int> absorbedInBoxIds = new HashSet<int>();
 
         public void Awake()
         {
@@ -44,45 +49,48 @@ namespace MapValueTracker
 
         public static void ResetValues()
         {
-            if (!SemiFunc.RunIsLevel())
-                totalValue = 0;
+            totalValue = 0f;
+            totalValueInit = 0f;
+            destroyedIds.Clear();
+            absorbedInBoxIds.Clear();
 
-            Logger.LogDebug("In ResetValues()");
-
-            Logger.LogDebug("Total Map Value: " + totalValue);
+            Logger.LogDebug("In ResetValues() - Reset totalValue and totalValueInit to 0");
         }
 
         public static void CheckForItems(ValuableObject ignoreThis = null)
         {
-            if (!Traverse.Create(RoundDirector.instance).Field("allExtractionPointsCompleted").GetValue<bool>())
+            if (RoundDirector.instance == null || !RoundDirector.instance.allExtractionPointsCompleted)
             {
                 totalValue = 0f;
-                List<ValuableObject> valuebleObjects = Object.FindObjectsOfType<ValuableObject>().ToList();
+                ValuableObject[] valuableObjects = Object.FindObjectsOfType<ValuableObject>();
 
-                if (ignoreThis != null)
+                for (int i = 0; i < valuableObjects.Length; i++)
                 {
-                    valuebleObjects.Remove(ignoreThis);
+                    ValuableObject vo = valuableObjects[i];
+                    if (vo != null && vo != ignoreThis && vo.gameObject.activeInHierarchy && !IsPendingDestroy(vo.physGrabObject))
+                    {
+                        totalValue += vo.dollarValueCurrent;
+                    }
                 }
-                for (int i = 0; i < valuebleObjects.Count; i++)
+
+                // Also include any value currently stored inside Valuable Boxes on the map
+                ItemValuableBox[] boxes = Object.FindObjectsOfType<ItemValuableBox>();
+                for (int i = 0; i < boxes.Length; i++)
                 {
-                    totalValue += valuebleObjects[i].dollarValueCurrent;
+                    ItemValuableBox box = boxes[i];
+                    if (box != null && box.gameObject.activeInHierarchy && !IsPendingDestroy(box.GetComponent<PhysGrabObject>()))
+                    {
+                        totalValue += box.CurrentValue;
+                    }
                 }
-                MapValueTracker.Logger.LogDebug("After CheckForItems Total Val: " + MapValueTracker.totalValue);
+
+                Logger.LogDebug("After CheckForItems Total Val: " + totalValue);
             }
         }
-    }
 
-    public class MyOnDestroy : MonoBehaviour
-    {
-        void OnDestroy()
+        private static bool IsPendingDestroy(PhysGrabObject pgo)
         {
-            MapValueTracker.Logger.LogDebug("Destroying!");
-            var vo = GetComponent<ValuableObject>();
-            MapValueTracker.Logger.LogDebug("Destroyed Valuable Object! " + vo.name + " Val: " + vo.dollarValueCurrent);
-            MapValueTracker.totalValue -= vo.dollarValueCurrent;
-            MapValueTracker.Logger.LogDebug("Total Val: " + MapValueTracker.totalValue);
+            return pgo != null && destroyedIds.Contains(pgo.GetInstanceID());
         }
     }
-
-
 }

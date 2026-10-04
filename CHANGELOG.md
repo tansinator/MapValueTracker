@@ -1,1 +1,1 @@
-1.3.0 Added config options to change the UI Position of the value tracker. Default, Lower Right, Bottom Right, and Custom Coordinates.
+1.3.1 Fixed the issue where the value of dropped items was not being removed from the total value.

@@ -1,7 +1,9 @@
 {
 	"name": "Map_Value_Tracker",
-	"version_number": "1.2.2",
+	"version_number": "1.3.1",
 	"website_url": "https://github.com/tansinator/MapValueTracker",
 	"description": "Tracks all valuable items on the map. Updates in real-time.",
-	"dependencies": ["BepInEx-BepInExPack-5.4.2100"]
+	"dependencies": [
+		"BepInEx-BepInExPack-5.4.2100"
+	]
 }

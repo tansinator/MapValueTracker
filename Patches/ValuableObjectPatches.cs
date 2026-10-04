@@ -1,41 +1,67 @@
-﻿using HarmonyLib;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using UnityEngine;
+using HarmonyLib;
 
 namespace MapValueTracker.Patches
 {
-    [HarmonyPatch(typeof(ValuableObject))]
-    static class ValuableObjectPatches
+    /// <summary>
+    /// Shared rules for counting a valuable that receives its dollar value mid-level
+    /// (enemy drops, surplus valuables, etc.).
+    /// Valuables that exist at generation time are counted by CheckForItems() in GenerateDone instead.
+    /// </summary>
+    static class ValuableSpawnAccounting
     {
-        [HarmonyPatch("Start")]
-        [HarmonyPostfix]
-        static void Start(ValuableObject __instance)
+        public static bool LevelGenerated =>
+            LevelGenerator.Instance != null && LevelGenerator.Instance.Generated;
+
+        public static void Add(ValuableObject vo, float value, string source)
         {
-            //__instance.gameObject.AddComponent<MyOnDestroy>();
-            //MapValueTracker.Logger.LogDebug("Added OnDestroy");
-        }
-        [HarmonyPatch("DollarValueSetRPC")]
-        [HarmonyPostfix]
-        static void DollarValueSet(ValuableObject __instance, float value)
-        {
-            MapValueTracker.Logger.LogDebug("Created Valuable Object! " + __instance.name + " Val: " + value);
             MapValueTracker.totalValue += value;
-            //MapValueTracker.CheckForItems();
-            MapValueTracker.Logger.LogDebug("After dollar value set Total Val: " + MapValueTracker.totalValue);
+            MapValueTracker.Logger.LogDebug($"Spawned Valuable Object ({source})! {vo.name} Val: {value}. Total Val: {MapValueTracker.totalValue}");
         }
-        [HarmonyPatch("DollarValueSetLogic")]
-        [HarmonyPostfix]
-        static void DollarValueSetLogic(ValuableObject __instance)
+    }
+
+    /// <summary>
+    /// Host / singleplayer. DollarValueSetLogic is called more than once per valuable
+    /// (ValuableDirector.SpawnValuable, then again from the DollarValueSet coroutine) but only
+    /// assigns a value on the first call, so only count the call that flips dollarValueSet false -> true.
+    /// </summary>
+    [HarmonyPatch(typeof(ValuableObject), "DollarValueSetLogic")]
+    static class DollarValueSetLogicPatch
+    {
+        static void Prefix(ValuableObject __instance, out bool __state)
         {
-            if (SemiFunc.IsMasterClientOrSingleplayer())
-            {
-                MapValueTracker.Logger.LogDebug("Created Valuable Object! " + __instance.name + " Val: " + __instance.dollarValueCurrent);
-                MapValueTracker.totalValue += __instance.dollarValueCurrent;
-                //MapValueTracker.CheckForItems();
-                MapValueTracker.Logger.LogDebug("After dollar value set Total Val: " + MapValueTracker.totalValue);
-            }
+            __state = __instance.dollarValueSet;
+        }
+
+        static void Postfix(ValuableObject __instance, bool __state)
+        {
+            if (__state || !__instance.dollarValueSet)
+                return;
+            if (!SemiFunc.IsMasterClientOrSingleplayer() || !ValuableSpawnAccounting.LevelGenerated)
+                return;
+
+            ValuableSpawnAccounting.Add(__instance, __instance.dollarValueCurrent, "Logic");
+        }
+    }
+
+    /// <summary>
+    /// Clients. The host sends DollarValueSetRPC to Others; only count it if it actually set the value.
+    /// </summary>
+    [HarmonyPatch(typeof(ValuableObject), "DollarValueSetRPC")]
+    static class DollarValueSetRPCPatch
+    {
+        static void Prefix(ValuableObject __instance, out bool __state)
+        {
+            __state = __instance.dollarValueSet;
+        }
+
+        static void Postfix(ValuableObject __instance, float value, bool __state)
+        {
+            if (__state || !__instance.dollarValueSet)
+                return;
+            if (!ValuableSpawnAccounting.LevelGenerated)
+                return;
+
+            ValuableSpawnAccounting.Add(__instance, value, "RPC");
         }
     }
 }
