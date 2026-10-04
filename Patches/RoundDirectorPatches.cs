@@ -120,28 +120,23 @@ namespace MapValueTracker.Patches
                     MapValueTracker.valueText.SetText("Map: $" + valueToDisplay.ToString("N0"));
                 }
 
-                if (Configuration.AlwaysOn.Value)
+                bool mapPressed = (MapToolController.instance != null && MapToolController.instance.mapToggled) || SemiFunc.InputHold(InputKey.Map);
+
+                switch (Configuration.DisplayMode.Value)
                 {
-                    MapValueTracker.textInstance.SetActive(true);
-                }
-                else if (Configuration.UseValueRatio.Value)
-                {
-                    if (currentGoal > 0 && (MapValueTracker.totalValue / (float)currentGoal) <= Configuration.ValueRatio.Value)
+                    case DisplayModes.AlwaysOn:
                         MapValueTracker.textInstance.SetActive(true);
-                    else
-                        MapValueTracker.textInstance.SetActive(false);
-                }
-                else
-                {
-                    bool mapToggled = MapToolController.instance != null && MapToolController.instance.mapToggled;
-                    if (SemiFunc.InputHold(InputKey.Map) || mapToggled)
-                    {
-                        MapValueTracker.textInstance.SetActive(true);
-                    }
-                    else
-                    {
-                        MapValueTracker.textInstance.SetActive(false);
-                    }
+                        break;
+
+                    case DisplayModes.ValueRatio:
+                        bool ratioReached = currentGoal > 0 && (MapValueTracker.totalValue / (float)currentGoal) <= Configuration.ValueRatio.Value;
+                        MapValueTracker.textInstance.SetActive(ratioReached || mapPressed);
+                        break;
+
+                    case DisplayModes.OnMapKey:
+                    default:
+                        MapValueTracker.textInstance.SetActive(mapPressed);
+                        break;
                 }
             }
             else

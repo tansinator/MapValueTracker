@@ -7,6 +7,13 @@ using UnityEngine;
 
 namespace MapValueTracker.Config
 {
+    public enum DisplayModes
+    {
+        AlwaysOn,
+        OnMapKey,
+        ValueRatio
+    }
+
     public enum Positions
     {
         Default,
@@ -17,10 +24,9 @@ namespace MapValueTracker.Config
 
     internal class Configuration
     {
-        public static ConfigEntry<bool> AlwaysOn;
-        public static ConfigEntry<bool> StartingValueOnly;
-        public static ConfigEntry<bool> UseValueRatio;
+        public static ConfigEntry<DisplayModes> DisplayMode;
         public static ConfigEntry<float> ValueRatio;
+        public static ConfigEntry<bool> StartingValueOnly;
         public static ConfigEntry<Positions> UIPosition;
         public static ConfigEntry<Vector2> CustomPositionCoords;
 
@@ -30,60 +36,118 @@ namespace MapValueTracker.Config
         {
             config.SaveOnConfigSet = false;
 
-            AlwaysOn = config.Bind(
-                "Default",
-                "AlwaysOn",
-                true,
-                "Toggle to always display map value when an extraction goal is active. If false, use the menu key to pull up the tracker (Tab by default)."
+            DisplayMode = config.Bind(
+                "Display",
+                "DisplayMode",
+                DisplayModes.AlwaysOn,
+                "How the tracker is displayed on screen:\n- AlwaysOn: Always visible on HUD.\n- OnMapKey: Only visible while holding or toggling the Map key (Tab by default).\n- ValueRatio: Automatically appears when remaining map value reaches or drops below the ValueRatio threshold (also appears while holding Map key)."
             );
-            StartingValueOnly = config.Bind(
-                "Default",
-                "StartingValueOnly",
-                false,
-                "Toggle to keep the Map Value fixed to the level's initially generated value. Will not update value in real time from breaking items, killing enemies, or extracting loot. Should not be used with UseValueRatio set to true."
-            );
-            UseValueRatio = config.Bind(
-                "Default",
-                "UseValueRatio",
-                false,
-                "Toggle to use value ratio to display Map Valuables. AlwaysOn must be false and this must be true to take effect."
-            );
+
             ValueRatio = config.Bind(
-                "Default",
+                "Display",
                 "ValueRatio",
                 2.0f,
-                "Ratio of Map Value to Extraction Goal. UseValueRatio must be true to take effect. Ex: 20k map value to 10k goal is 2.0 "
+                new ConfigDescription(
+                    "Ratio of remaining map value to extraction goal. Used when DisplayMode is set to ValueRatio. (e.g. 2.0 = displays when remaining value is <= 2x the goal).",
+                    new AcceptableValueRange<float>(0.5f, 5.0f)
+                )
             );
+
+            StartingValueOnly = config.Bind(
+                "Display",
+                "StartingValueOnly",
+                false,
+                "Toggle to keep the Map Value fixed to the level's initially generated value. Will not update value in real time from breaking items, killing enemies, or extracting loot."
+            );
+
             UIPosition = config.Bind(
-                "UIPosition",
+                "Position",
                 "UIPosition",
                 Positions.Default,
-                "Preset Position of the Value Tracker UI element. Default is on the right side, below the extraction targets."
+                "Preset position of the Value Tracker UI element on screen."
             );
+
             CustomPositionCoords = config.Bind(
-                "UIPosition",
+                "Position",
                 "CustomPositionCoords",
                 new Vector2(0, 0),
-                "Custom X,Y coordinates of the Value Tracker UI element. Bottom Right corner is 0,0. Default position is 0,225."
+                "Custom X,Y coordinates when UIPosition is set to Custom. Bottom-right corner is (0, 0). Default is (0, 225)."
             );
+
+            MigrateOldConfig(config);
 
             UIPosition.SettingChanged += (_, _) => OnUIPositionChanged?.Invoke();
             CustomPositionCoords.SettingChanged += (_, _) => OnUIPositionChanged?.Invoke();
 
-            ClearOrphanedEntries(config);
             config.Save();
             config.SaveOnConfigSet = true;
         }
 
-        static void ClearOrphanedEntries(ConfigFile cfg)
+        static void MigrateOldConfig(ConfigFile cfg)
         {
-            // Find the private property `OrphanedEntries` from the type `ConfigFile` //
             PropertyInfo orphanedEntriesProp = AccessTools.Property(typeof(ConfigFile), "OrphanedEntries");
-            if (orphanedEntriesProp != null)
+            if (orphanedEntriesProp == null)
+                return;
+
+            var orphanedEntries = orphanedEntriesProp.GetValue(cfg) as Dictionary<ConfigDefinition, string>;
+            if (orphanedEntries == null || orphanedEntries.Count == 0)
+                return;
+
+            bool oldAlwaysOn = true;
+            bool oldUseRatio = false;
+            bool hasOldAlwaysOn = false;
+
+            foreach (var kvp in orphanedEntries)
             {
-                var orphanedEntries = orphanedEntriesProp.GetValue(cfg) as Dictionary<ConfigDefinition, string>;
-                orphanedEntries?.Clear();
+                string section = kvp.Key.Section;
+                string key = kvp.Key.Key;
+                string val = kvp.Value;
+
+                if (section == "Default" && key == "AlwaysOn" && bool.TryParse(val, out var aOn))
+                {
+                    oldAlwaysOn = aOn;
+                    hasOldAlwaysOn = true;
+                }
+                else if (section == "Default" && key == "UseValueRatio" && bool.TryParse(val, out var uRatio))
+                {
+                    oldUseRatio = uRatio;
+                }
+                else if (section == "Default" && key == "StartingValueOnly" && bool.TryParse(val, out var sVal))
+                {
+                    StartingValueOnly.Value = sVal;
+                }
+                else if (section == "Default" && key == "ValueRatio" && float.TryParse(val, out var vRatio))
+                {
+                    ValueRatio.Value = vRatio;
+                }
+                else if (section == "UIPosition" && key == "UIPosition" && Enum.TryParse<Positions>(val, out var uPos))
+                {
+                    UIPosition.Value = uPos;
+                }
+                else if (section == "UIPosition" && key == "CustomPositionCoords")
+                {
+                    try
+                    {
+                        CustomPositionCoords.Value = (Vector2)TomlTypeConverter.ConvertToValue(val, typeof(Vector2));
+                    }
+                    catch
+                    {
+                        // Ignore parse failure on custom coordinates
+                    }
+                }
             }
+
+            if (hasOldAlwaysOn)
+            {
+                if (oldAlwaysOn)
+                    DisplayMode.Value = DisplayModes.AlwaysOn;
+                else if (oldUseRatio)
+                    DisplayMode.Value = DisplayModes.ValueRatio;
+                else
+                    DisplayMode.Value = DisplayModes.OnMapKey;
+            }
+
+            orphanedEntries.Clear();
         }
     }
 }
