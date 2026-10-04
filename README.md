@@ -2,14 +2,20 @@ This mod will show total value of the valuables on the map and by default update
 
 Is ALWAYS ON and visible by default! 
 
-To pull up map value only when pressing the Map button (Tab by default), set 'AlwaysOn' and 'UseValueRatio' to false .
+To pull up map value only when pressing the Map button (Tab by default), set `DisplayMode` to `OnMapKey`.
 
-Can be set to only show the initial map's value and NOT update in real time by setting StartingValueOnly to true.
+Can be set to only show the initial map's value and NOT update in real time by setting `StartingValueOnly` to true.
 
 Configuration variables:
-- AlwaysOn set to true will keep the value always on the HUD. Overrides any other setting like UseValueRatio.
-- StartingValueOnly set to true will keep the Map Value fixed to the level's initially generated value. Will not update value in real time from breaking items, killing enemies, or extracting loot. Should not be used with UseValueRatio set to true.
-- UseValueRatio set to true will only show the map value when your remaining map value is some ratio, 'ValueRatio', of the current extraction goal. Needs 'AlwaysOn' and 'StartingValueOnly' set to false to be usable.
-- ValueRatio is the ratio of Map value to extraction goal. Ex: Configure 'AlwaysOn' to false, 'StartingValueOnly' to false, 'UseValueRatio' to true, and 'ValueRatio' to 2.0 to have it appear when remaining map value is 2x the current extraction goal.
-- UIPosition is a drop down of UI Position presets along the right side of the screen. Set to Custom and modify CustomPositionCoords to use custom coordinates.
-- CustomPositionCoords is the X and Y position of the UI element. Requires UIPosition to be set to Custom. 0.0,0.0 is bottom right corner. Default UIPosition is 0.0,225.0.
+- `DisplayMode`: Dropdown selection for how the tracker is displayed on screen:
+  - `AlwaysOn`: Always visible on HUD (default).
+  - `OnMapKey`: Only visible while holding or toggling the Map key (Tab by default).
+  - `ValueRatio`: Automatically appears when remaining map value reaches or drops below the `ValueRatio` threshold (also appears while holding Map key).
+- `ValueRatio`: Ratio of remaining map value to extraction goal (slider 0.5 to 5.0). Used when `DisplayMode` is set to `ValueRatio` (e.g. 2.0 = displays when remaining value is <= 2x the goal).
+- `StartingValueOnly`: Set to true to keep the Map Value fixed to the level's initially generated value. Will not update value in real time from breaking items, killing enemies, or extracting loot.
+- `UIPosition`: Dropdown of UI Position presets along the right side of the screen (`Default`, `LowerRight`, `BottomRight`, `Custom`).
+- `CustomPositionCoords`: The X and Y coordinates of the UI element when `UIPosition` is set to `Custom`. (0, 0) is bottom right corner. Default is (0, 225).
+
+Shop Progression (Optional):
+- `RequireShopUpgrade`: Set to `true` to require purchasing the "Map Value Tracker" upgrade pedestal from the Shop ($4,000 - $7,000) before the value tracker appears on your HUD. Default is `false` (always available).
+- `TeamWideUnlock`: Set to `true` so that when any player buys the upgrade in co-op, it unlocks the tracker for the whole squad. Default is `true`.

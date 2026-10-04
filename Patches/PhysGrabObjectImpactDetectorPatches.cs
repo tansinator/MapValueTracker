@@ -1,92 +1,99 @@
-﻿using HarmonyLib;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using HarmonyLib;
 using UnityEngine;
 
 namespace MapValueTracker.Patches
 {
-    [HarmonyPatch(typeof(PhysGrabObjectImpactDetector))]
-    public static class PhysGrabObjectImpactDetectorPatches
+    /// <summary>
+    /// Damage accounting. Deducts only the actual drop in dollarValueCurrent caused by this hit.
+    /// Any value remaining on the object is deducted when the object is destroyed (see DestroyPhysGrabObjectPatch).
+    ///
+    /// Why not use the valueLost argument: on a shatter (&lt;15% of original), the game overwrites valueLost with the
+    /// item's full pre-hit value, and on host/singleplayer the destroy chain (DestroyObject -> DestroyObjectRPC ->
+    /// onDestroy -> DestroyPhysGrabObjectRPC) runs synchronously *inside* BreakRPC, i.e. before this postfix.
+    /// Measuring the before/after delta is correct regardless of call order or argument mutation.
+    /// </summary>
+    [HarmonyPatch(typeof(PhysGrabObjectImpactDetector), "BreakRPC")]
+    static class BreakRPCPatch
     {
-
-        [HarmonyPatch("BreakRPC")]
-        [HarmonyPostfix]
-        static void StartPostFix(float valueLost, PhysGrabObjectImpactDetector? __instance, bool _loseValue)
+        static void Prefix(PhysGrabObjectImpactDetector __instance, out float __state)
         {
-            if (!_loseValue)
+            __state = (__instance != null && __instance.valuableObject != null)
+                ? __instance.valuableObject.dollarValueCurrent
+                : 0f;
+        }
+
+        static void Postfix(PhysGrabObjectImpactDetector __instance, bool _loseValue, float __state)
+        {
+            if (!_loseValue || __instance == null || !SemiFunc.RunIsLevel())
                 return;
 
-            MapValueTracker.Logger.LogDebug("BreakRPC - Current Value: " + MapValueTracker.totalValue);
+            ValuableObject vo = __instance.valuableObject;
+            if (vo == null)
+                return;
 
-            ValuableObject vo = __instance?.GetComponent<ValuableObject>();
+            float lost = Mathf.Max(0f, __state - vo.dollarValueCurrent);
+            MapValueTracker.totalValue = Mathf.Max(0f, MapValueTracker.totalValue - lost);
 
-            MapValueTracker.Logger.LogDebug("BreakRPC - Valuable Object current value: " + vo?.dollarValueCurrent);
-            MapValueTracker.Logger.LogDebug("BreakRPC - Value lost: " + valueLost);
-
-            MapValueTracker.totalValue -= valueLost;
-
-            MapValueTracker.Logger.LogDebug("BreakRPC - After Break Value: " + MapValueTracker.totalValue);
+            MapValueTracker.Logger.LogDebug($"BreakRPC - {vo.name} lost {lost} (now {vo.dollarValueCurrent}). Map Remaining: {MapValueTracker.totalValue}");
         }
+    }
 
-        [HarmonyPatch(typeof(PhysGrabObject), "DestroyPhysGrabObjectRPC")]
-        [HarmonyPostfix]
-        public static void DestroyPhysGrabObjectPostfix(PhysGrabObject __instance)
+    /// <summary>
+    /// Destroy accounting. Deducts whatever value is still on the object (extraction, shatter remainder,
+    /// death pit, despawn), unless the object was absorbed into a Valuable Box.
+    /// </summary>
+    [HarmonyPatch(typeof(PhysGrabObject), "DestroyPhysGrabObjectRPC")]
+    static class DestroyPhysGrabObjectPatch
+    {
+        static void Postfix(PhysGrabObject __instance)
         {
-            if (SemiFunc.RunIsLevel())
-            {
-                var vo = __instance.GetComponent<ValuableObject>();
-                if (vo == null)
-                    return;
-                MapValueTracker.Logger.LogDebug("Destroying (DPGO)!");
-                MapValueTracker.Logger.LogDebug("Destroyed Valuable Object! " + vo.name + " Val: " + vo.dollarValueCurrent);
-                if (vo.dollarValueCurrent < vo.dollarValueOriginal * 0.15f) //Workaround for duplicate destroyed objects vs extraction destruction
-                    MapValueTracker.totalValue -= 0;
-                else 
-                    MapValueTracker.totalValue -= vo.dollarValueCurrent;
-                MapValueTracker.Logger.LogDebug("After DPGO Map Remaining Val: " + MapValueTracker.totalValue);
-            }
-        }
+            if (!SemiFunc.RunIsLevel() || __instance == null)
+                return;
 
-        /*[HarmonyPatch(typeof(ExtractionPoint), "DestroyTheFirstPhysObjectsInHaulList")]
-        [HarmonyPrefix]
-        public static void DestroyTheFirstPhysObjectsInHaulList()
-        {
-            if (SemiFunc.RunIsLevel())
+            int id = __instance.GetInstanceID();
+
+            // Only account for each object once
+            if (!MapValueTracker.destroyedIds.Add(id))
+                return;
+
+            // Absorbed into a Valuable Box: value moves to the box, not lost
+            if (MapValueTracker.absorbedInBoxIds.Remove(id))
+                return;
+
+            // A Valuable Box itself was destroyed or extracted
+            ItemValuableBox box = __instance.GetComponent<ItemValuableBox>();
+            if (box != null)
             {
-                if (SemiFunc.IsMasterClientOrSingleplayer() && RoundDirector.instance.dollarHaulList.Count != 0)
+                if (box.CurrentValue > 0f)
                 {
-                    if (RoundDirector.instance.dollarHaulList[0] && RoundDirector.instance.dollarHaulList[0].GetComponent<PhysGrabObject>())
-                    {
-                        MapValueTracker.Logger.LogDebug("Destroying (DAPOISL)!");
-                        MapValueTracker.Logger.LogDebug("Destroyed Valuable Object! " + RoundDirector.instance.dollarHaulList[0].name + " Val: " + (int)RoundDirector.instance.dollarHaulList[0].GetComponent<ValuableObject>().dollarValueCurrent);
-                        MapValueTracker.totalValue -= (int)RoundDirector.instance.dollarHaulList[0].GetComponent<ValuableObject>().dollarValueCurrent;
-                        MapValueTracker.Logger.LogDebug("After DAPOISL Map Remaining Val: " + MapValueTracker.totalValue);
-                    }
+                    MapValueTracker.totalValue = Mathf.Max(0f, MapValueTracker.totalValue - box.CurrentValue);
+                    MapValueTracker.Logger.LogDebug($"Valuable Box destroyed/extracted! Val: {box.CurrentValue}. Map Remaining: {MapValueTracker.totalValue}");
                 }
+                return;
+            }
+
+            ValuableObject vo = __instance.GetComponent<ValuableObject>();
+            if (vo != null && vo.dollarValueCurrent > 0f)
+            {
+                MapValueTracker.totalValue = Mathf.Max(0f, MapValueTracker.totalValue - vo.dollarValueCurrent);
+                MapValueTracker.Logger.LogDebug($"Destroyed Valuable Object! {vo.name} Val: {vo.dollarValueCurrent}. Map Remaining: {MapValueTracker.totalValue}");
             }
         }
-        
-        [HarmonyPatch(typeof(ExtractionPoint), "DestroyAllPhysObjectsInHaulList")]
-        [HarmonyPrefix]
-        public static void DestroyAllPhysObjectsInHaulList()
+    }
+
+    /// <summary>
+    /// Marks valuables being absorbed into an ItemValuableBox so their subsequent destroy is not deducted.
+    /// Runs on all clients (host calls it directly; clients via StartAbsorbRPC).
+    /// </summary>
+    [HarmonyPatch(typeof(ItemValuableBox), "StartAbsorbLocal")]
+    static class ItemValuableBoxAbsorbPatch
+    {
+        static void Prefix(PhysGrabObject target)
         {
-            if (SemiFunc.RunIsLevel())
+            if (target != null)
             {
-                if (SemiFunc.IsMasterClientOrSingleplayer())
-                {
-                    foreach (GameObject gameObject in RoundDirector.instance.dollarHaulList)
-                    {
-                        if (gameObject && gameObject.GetComponent<PhysGrabObject>())
-                        {
-                            MapValueTracker.Logger.LogDebug("Destroying (DAPOISL)!");
-                            MapValueTracker.Logger.LogDebug("Destroyed Valuable Object! " + gameObject.name + " Val: " + (int)gameObject.GetComponent<ValuableObject>().dollarValueCurrent);
-                            MapValueTracker.totalValue -= (int)gameObject.GetComponent<ValuableObject>().dollarValueCurrent;
-                            MapValueTracker.Logger.LogDebug("After DAPOISL Map Remaining Val: " + MapValueTracker.totalValue);
-                        }
-                    }
-                }
+                MapValueTracker.absorbedInBoxIds.Add(target.GetInstanceID());
             }
-        }*/
+        }
     }
 }
