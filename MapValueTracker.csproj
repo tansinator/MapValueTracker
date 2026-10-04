@@ -64,6 +64,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\tracker_icon.jpg" />
+    <EmbeddedResource Include="Resources\tracker_icon.png" />
   </ItemGroup>
 </Project>

@@ -116,7 +116,7 @@ namespace MapValueTracker.Upgrades
             try
             {
                 Assembly assembly = Assembly.GetExecutingAssembly();
-                using var stream = assembly.GetManifestResourceStream("MapValueTracker.Resources.tracker_icon.jpg");
+                using var stream = assembly.GetManifestResourceStream("MapValueTracker.Resources.tracker_icon.png");
                 if (stream != null)
                 {
                     byte[] data = new byte[stream.Length];
@@ -129,7 +129,7 @@ namespace MapValueTracker.Upgrades
             }
             catch (Exception ex)
             {
-                MapValueTracker.Logger.LogWarning($"[MapValueTracker] Could not load embedded tracker_icon.jpg: {ex}");
+                MapValueTracker.Logger.LogWarning($"[MapValueTracker] Could not load embedded tracker_icon.png: {ex}");
             }
 
             return cachedIconTexture;
@@ -137,7 +137,8 @@ namespace MapValueTracker.Upgrades
 
         private static void ApplyCustomMaterials(GameObject prefab)
         {
-            Texture2D icon = GetIconTexture();
+            Texture2D texture = GetIconTexture();
+            if (texture == null) return;
 
             foreach (Renderer renderer in prefab.GetComponentsInChildren<Renderer>(true))
             {
@@ -147,34 +148,11 @@ namespace MapValueTracker.Upgrades
                     Material mat = materials[i];
                     if (mat == null) continue;
 
-                    string matName = mat.name.ToLowerInvariant();
-                    bool isScreenOrDisplay = matName.Contains("screen") ||
-                                             matName.Contains("display") ||
-                                             matName.Contains("icon") ||
-                                             matName.Contains("face") ||
-                                             mat.mainTexture != null;
-
-                    if (isScreenOrDisplay)
-                    {
-                        if (icon != null)
-                        {
-                            mat.mainTexture = icon;
-                            if (mat.HasProperty("_BaseMap")) mat.SetTexture("_BaseMap", icon);
-                            if (mat.HasProperty("_MainTex")) mat.SetTexture("_MainTex", icon);
-                        }
-
-                        mat.EnableKeyword("_EMISSION");
-                        if (mat.HasProperty("_EmissionColor"))
-                        {
-                            mat.SetColor("_EmissionColor", new Color(0.2f, 0.95f, 0.35f) * 1.8f);
-                        }
-                    }
-                    else
-                    {
-                        Color chassisColor = new Color(0.12f, 0.20f, 0.15f);
-                        if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", chassisColor);
-                        if (mat.HasProperty("_Color")) mat.SetColor("_Color", chassisColor);
-                    }
+                    mat.mainTexture = texture;
+                    if (mat.HasProperty("_BaseMap")) mat.SetTexture("_BaseMap", texture);
+                    if (mat.HasProperty("_MainTex")) mat.SetTexture("_MainTex", texture);
+                    if (mat.HasProperty("_Color")) mat.SetColor("_Color", Color.white);
+                    if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", Color.white);
                 }
                 renderer.materials = materials;
             }
